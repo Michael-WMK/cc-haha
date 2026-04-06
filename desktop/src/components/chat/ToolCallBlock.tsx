@@ -110,7 +110,7 @@ function renderPreview(
   if (toolName === 'Bash' && typeof obj.command === 'string') {
     return (
       <TerminalChrome title={typeof obj.description === 'string' ? obj.description : filePath}>
-        <div className="px-3 py-2.5 font-[var(--font-mono)] text-[11px] leading-[1.45] text-[#d8d8d8]">
+        <div className="px-3 py-2.5 font-[var(--font-mono)] text-[11px] leading-[1.3] text-[#d8d8d8]">
           <span className="text-[#28c840]">$</span> {obj.command}
         </div>
       </TerminalChrome>
@@ -125,7 +125,7 @@ function renderPreview(
     const text = extractTextContent(result.content)
     if (text) {
       return (
-        <div className={`overflow-hidden rounded-2xl border ${
+        <div className={`overflow-hidden rounded-lg border ${
           result.isError
             ? 'border-[var(--color-error)]/20 bg-[var(--color-error-container)]/60'
             : 'border-[var(--color-border)] bg-[var(--color-surface)]'
@@ -153,7 +153,7 @@ function renderDetails(toolName: string, obj: Record<string, unknown>) {
 
   const text = JSON.stringify(obj, null, 2)
   return (
-    <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)]">
       <div className="flex items-center justify-between border-b border-[var(--color-border)] px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-[var(--color-outline)]">
         <span>Tool Input</span>
         <CopyButton

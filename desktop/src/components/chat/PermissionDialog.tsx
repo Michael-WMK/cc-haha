@@ -98,7 +98,7 @@ function renderPermissionPreview(toolName: string, input: unknown) {
   if (toolName === 'Bash' && typeof obj.command === 'string') {
     return (
       <div className="overflow-x-auto rounded-[var(--radius-md)] bg-[#1e1e1e] px-3 py-2.5">
-        <pre className="font-[var(--font-mono)] text-[11px] leading-[1.45] text-[#d4d4d4] whitespace-pre-wrap break-words">
+        <pre className="font-[var(--font-mono)] text-[11px] leading-[1.3] text-[#d4d4d4] whitespace-pre-wrap break-words">
           <span className="text-[#28c840] select-none">$ </span>{obj.command}
         </pre>
       </div>
@@ -209,7 +209,7 @@ export function PermissionDialog({ requestId, toolName, input, description }: Pr
         )}
 
         {allowRawToggle && showRaw && (
-          <pre className="mt-2 max-h-[220px] overflow-y-auto overflow-x-auto rounded-[var(--radius-md)] bg-[#1e1e1e] px-3 py-2.5 font-[var(--font-mono)] text-[11px] leading-[1.45] text-[#d4d4d4] whitespace-pre-wrap break-words">
+          <pre className="mt-2 max-h-[220px] overflow-y-auto overflow-x-auto rounded-[var(--radius-md)] bg-[#1e1e1e] px-3 py-2.5 font-[var(--font-mono)] text-[11px] leading-[1.3] text-[#d4d4d4] whitespace-pre-wrap break-words">
             {rawInput}
           </pre>
         )}

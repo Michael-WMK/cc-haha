@@ -67,7 +67,7 @@ export function CodeViewer({ code, language, maxLines = 20, showLineNumbers = tr
                 <span className="w-0" />
               )}
               <span
-                className="overflow-hidden bg-white px-4 py-px whitespace-pre-wrap break-words text-[#24292f]"
+                className="overflow-hidden bg-white px-3 py-px whitespace-pre-wrap break-words text-[#24292f]"
                 dangerouslySetInnerHTML={{ __html: highlightedLines[index] ?? escapeHtml(line) }}
               />
             </div>

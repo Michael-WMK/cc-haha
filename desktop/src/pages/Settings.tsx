@@ -765,7 +765,7 @@ function AgentsSettings() {
       ) : (
         <div className="flex flex-col gap-6 min-w-0">
           <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-container-low)] overflow-hidden">
-            <div className="grid gap-4 px-5 py-5 md:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)] md:items-end">
+            <div className="grid gap-4 px-5 py-5 min-w-0 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)] xl:items-end">
               <div className="min-w-0">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--color-text-tertiary)] mb-2">
                   {t('settings.agents.browserEyebrow')}
@@ -783,7 +783,7 @@ function AgentsSettings() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 min-w-0 sm:grid-cols-3">
                 <SummaryCard
                   label={t('settings.agents.summary.totalAgents')}
                   value={String(allAgents.length)}
@@ -798,7 +798,7 @@ function AgentsSettings() {
                   label={t('settings.agents.summary.sources')}
                   value={String(sourceCount)}
                   icon="layers"
-                  className="col-span-2 md:col-span-1"
+                  className="col-span-2 sm:col-span-1"
                 />
               </div>
             </div>
@@ -1119,12 +1119,12 @@ function SummaryCard({
   className?: string
 }) {
   return (
-    <div className={`rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 ${className}`}>
-      <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-[var(--color-text-tertiary)]">
-        <span className="material-symbols-outlined text-[14px]">{icon}</span>
-        <span>{label}</span>
+    <div className={`rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 min-w-0 ${className}`}>
+      <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.12em] text-[var(--color-text-tertiary)] min-w-0">
+        <span className="material-symbols-outlined text-[14px] flex-shrink-0">{icon}</span>
+        <span className="truncate">{label}</span>
       </div>
-      <div className="mt-2 text-lg font-semibold text-[var(--color-text-primary)]">
+      <div className="mt-2 text-lg font-semibold text-[var(--color-text-primary)] truncate">
         {value}
       </div>
     </div>

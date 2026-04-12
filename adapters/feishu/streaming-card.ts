@@ -31,17 +31,11 @@ import { optimizeMarkdownForFeishu, sanitizeTextForCard } from './markdown-style
 
 /** 初始流式卡片：Schema 2.0 + streaming_mode + element_id。
  *
- *  包含两个 markdown 元素：
- *  - 独立的 loading 提示: "☁️ 正在思考中..." 小号灰字。放在**首位**紧贴
- *    卡片顶部 —— 否则空的 streaming_content 会占默认行高把 loading 挤到
- *    卡片中间，视觉上像大片 padding。
- *  - `streaming_content`: 流式内容目标元素，初始为空。由 cardElement.content()
- *    逐步填充。位于 loading 下方。
+ *  只包含一个 markdown 元素 `streaming_content`，初始内容为 loading 提示。
+ *  由 renderedText() 统一控制显示状态（思考中 / reasoning / 正文），
+ *  避免静态 loading 元素和 streaming 内容同时显示造成"两个思考中"。
  *
- *  finalize 时整卡 update 替换，loading 元素自然消失。
- *
- *  openclaw-lark 用的是 `custom_icon` + 私有 img_key 做 loading 动画，
- *  我们没有那个 img_key，用 emoji + notation 文字达到相似的"仍在处理"提示。 */
+ *  finalize 时整卡 update 替换为纯答复正文。 */
 export function buildInitialStreamingCard(): Record<string, unknown> {
   return {
     schema: '2.0',
@@ -54,11 +48,6 @@ export function buildInitialStreamingCard(): Record<string, unknown> {
         {
           tag: 'markdown',
           content: '☁️ *正在思考中...*',
-          text_size: 'notation',
-        },
-        {
-          tag: 'markdown',
-          content: '',
           text_align: 'left',
           element_id: STREAMING_ELEMENT_ID,
         },

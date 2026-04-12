@@ -105,14 +105,30 @@ export class ConversationService {
     ])
 
     console.log(
-      `[ConversationService] Starting CLI for ${sessionId}, cwd: ${workDir}`,
+      `[ConversationService] Starting CLI for ${sessionId}, cwd: ${workDir} (process.cwd()=${process.cwd()}, CALLER_DIR will be pinned to workDir)`,
     )
+
+    // IMPORTANT (Bug#5): 必须覆盖子进程继承的 CALLER_DIR / PWD。
+    // preload.ts 顶层读 process.env.CALLER_DIR 并调用 process.chdir(CALLER_DIR)。
+    // 在 bundled 桌面端里，server sidecar 被 Tauri 从 cwd=/ 启动，claude-sidecar.ts
+    // 在 server/cli 模式入口把 CALLER_DIR 默认设成 process.cwd()（即 '/'），
+    // 随后这个 env 被完整继承到 Bun.spawn 的 CLI 子进程；即使这里显式传了
+    // cwd: workDir，CLI 子进程里 preload.ts 还是会 chdir('/')，结果把
+    // STATE.cwd / "Primary working directory" 打回根目录，IM 会话里 AI 感知的
+    // 工作目录就变成 `/`。把 CALLER_DIR / PWD 显式覆盖成 workDir，preload.ts
+    // chdir 后落到正确目录。
+    const childEnv = {
+      ...process.env,
+      CLAUDE_CODE_ENABLE_TASKS: '1',
+      CALLER_DIR: workDir,
+      PWD: workDir,
+    }
 
     let proc: ReturnType<typeof Bun.spawn>
     try {
       proc = Bun.spawn(args, {
         cwd: workDir,
-        env: { ...process.env, CLAUDE_CODE_ENABLE_TASKS: '1' },
+        env: childEnv,
         stdin: 'pipe',
         stdout: 'ignore',  // CLI communicates via SDK WebSocket, not stdout
         stderr: 'pipe',

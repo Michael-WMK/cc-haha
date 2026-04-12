@@ -165,8 +165,18 @@ async function handleUserMessage(
       try {
         const resolved = await sessionService.getSessionWorkDir(sessionId)
         if (resolved) workDir = resolved
-      } catch {
+        console.log(
+          `[WS] handleUserMessage: sessionId=${sessionId}, resolved workDir=${JSON.stringify(
+            resolved,
+          )}, will spawn CLI with workDir=${workDir}`,
+        )
+      } catch (resolveErr) {
         // fallback to cwd if session file not found
+        console.warn(
+          `[WS] handleUserMessage: failed to resolve workDir for ${sessionId}, using fallback=${workDir}: ${
+            resolveErr instanceof Error ? resolveErr.message : String(resolveErr)
+          }`,
+        )
       }
       const runtimeSettings = await getRuntimeSettings()
       const sdkUrl =

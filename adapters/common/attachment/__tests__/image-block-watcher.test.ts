@@ -76,4 +76,40 @@ describe('ImageBlockWatcher', () => {
     const all = w.drain()
     expect(all.length).toBe(2)
   })
+
+  it('reset() clears buffer, seen set, and accumulated list', () => {
+    const w = new ImageBlockWatcher()
+    w.feed('![a](/tmp/a.png)')
+    w.reset()
+    // After reset, drain() is empty
+    expect(w.drain().length).toBe(0)
+    // And re-feeding the same image yields a fresh emit (dedup state cleared)
+    const out = w.feed('![a](/tmp/a.png)')
+    expect(out.length).toBe(1)
+  })
+
+  it('skips relative paths (cannot be resolved safely)', () => {
+    const w = new ImageBlockWatcher()
+    const out = w.feed('![rel](relative/path.png) and ![ok](/tmp/ok.png)')
+    expect(out.length).toBe(1)
+    const source = out[0]!.source
+    expect(source.kind).toBe('path')
+    if (source.kind === 'path') expect(source.path).toBe('/tmp/ok.png')
+  })
+
+  it('extracts multiple images from a single feed chunk in order', () => {
+    const w = new ImageBlockWatcher()
+    const out = w.feed('![a](/tmp/a.png) ![b](https://x/b.png) ![c](data:image/png;base64,QQ==)')
+    expect(out.length).toBe(3)
+    expect(out[0]!.source.kind).toBe('path')
+    expect(out[1]!.source.kind).toBe('url')
+    expect(out[2]!.source.kind).toBe('base64')
+  })
+
+  it('rejects malformed data URI (not base64)', () => {
+    const w = new ImageBlockWatcher()
+    const out = w.feed('![bad](data:image/png,ABC)')
+    // Not in `;base64,` form → classify returns null → skipped
+    expect(out.length).toBe(0)
+  })
 })

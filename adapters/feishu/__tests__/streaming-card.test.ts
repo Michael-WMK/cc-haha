@@ -102,23 +102,13 @@ describe('buildInitialStreamingCard', () => {
     const card = buildInitialStreamingCard() as any
     expect(card.schema).toBe('2.0')
     expect(card.config.streaming_mode).toBe(true)
-    // 第二个元素是空的 streaming_content 目标（loading 在首位以避免顶部空 padding）
-    const streaming = card.body.elements[1]
-    expect(streaming.tag).toBe('markdown')
-    expect(streaming.content).toBe('')
-    expect(streaming.element_id).toBe(STREAMING_ELEMENT_ID)
-  })
-
-  it('loading 提示元素在首位（避免空 streaming_content 挤出顶部 padding）', () => {
-    const card = buildInitialStreamingCard() as any
+    // 唯一元素：streaming_content，初始内容为 loading 提示
     const elements = card.body.elements as any[]
-    expect(elements.length).toBe(2)
-    const loading = elements[0]
-    expect(loading.tag).toBe('markdown')
-    expect(loading.content).toContain('正在思考中')
-    expect(loading.text_size).toBe('notation')
-    // loading 元素不能有 element_id（那是给 streaming_content 独占的）
-    expect(loading.element_id).toBeUndefined()
+    expect(elements.length).toBe(1)
+    const streaming = elements[0]
+    expect(streaming.tag).toBe('markdown')
+    expect(streaming.content).toContain('正在思考中')
+    expect(streaming.element_id).toBe(STREAMING_ELEMENT_ID)
   })
 })
 
@@ -176,8 +166,8 @@ describe('StreamingCard: ensureCreated (CardKit 主路径)', () => {
     const cardJson = JSON.parse(calls[0]!.args.data.data)
     expect(cardJson.schema).toBe('2.0')
     expect(cardJson.config.streaming_mode).toBe(true)
-    // loading 元素在首位，streaming_content 占位在第二
-    expect(cardJson.body.elements[1].element_id).toBe(STREAMING_ELEMENT_ID)
+    // 唯一元素即 streaming_content
+    expect(cardJson.body.elements[0].element_id).toBe(STREAMING_ELEMENT_ID)
 
     // IM message 引用 card_id
     const content = JSON.parse(calls[1]!.args.data.content)

@@ -552,8 +552,16 @@ export class SessionService {
     // Default to user home directory when no workDir specified
     const resolvedWorkDir = workDir || os.homedir()
 
-    // Resolve to absolute path
+    // Resolve to absolute path. NOTE: path.resolve() uses process.cwd() to
+    // expand relative paths — in bundled sidecar mode the server's cwd is
+    // typically '/'. Callers (IM adapters) already send absolute realPath,
+    // but we log here so cwd regressions are caught early.
     const absWorkDir = path.resolve(resolvedWorkDir)
+    console.log(
+      `[SessionService] createSession: requested workDir=${JSON.stringify(
+        workDir,
+      )}, resolved=${absWorkDir} (process.cwd()=${process.cwd()})`,
+    )
     let stat
     try {
       stat = await fs.stat(absWorkDir)

@@ -148,7 +148,7 @@ export function TabBar() {
   if (tabs.length === 0) return null
 
   return (
-    <div className="flex items-center bg-[var(--color-surface-container)] min-h-[37px] select-none border-b border-[var(--color-border)]" data-tauri-drag-region>
+    <div className="flex items-stretch bg-[var(--color-surface-container)] min-h-[37px] select-none border-b border-[var(--color-border)]" data-tauri-drag-region>
 
       {canScrollLeft && (
         <button onClick={() => scroll('left')} className="flex-shrink-0 w-7 h-[37px] flex items-center justify-center text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)]">
@@ -156,7 +156,7 @@ export function TabBar() {
         </button>
       )}
 
-      <div ref={scrollRef} className="flex-1 flex items-center overflow-x-hidden" data-tauri-drag-region onDragOver={(e) => e.preventDefault()}>
+      <div ref={scrollRef} className="flex-1 flex items-stretch overflow-x-hidden" data-tauri-drag-region onDragOver={(e) => e.preventDefault()}>
         {tabs.map((tab, index) => (
           <TabItem
             key={tab.sessionId}
@@ -275,10 +275,10 @@ function TabItem({ tab, isActive, isDragOver, onClick, onClose, onContextMenu, o
       onDrop={onDrop}
       onDragEnd={onDragEnd}
       className={`
-        flex-shrink-0 flex items-center gap-1.5 px-3 cursor-pointer group transition-colors relative border-r border-r-[var(--color-border)]/30
+        flex-shrink-0 flex items-center gap-1.5 px-3 min-h-[37px] cursor-pointer group transition-colors relative
         ${isActive
-          ? 'h-[37px] bg-[var(--color-surface)] border-t-2 border-t-[var(--color-brand)]'
-          : 'h-[37px] bg-transparent hover:bg-[var(--color-surface-hover)]'
+          ? 'bg-[var(--color-surface)]'
+          : 'bg-transparent hover:bg-[var(--color-surface-hover)]'
         }
         ${isDragOver ? 'before:absolute before:left-0 before:top-[6px] before:bottom-[6px] before:w-[2px] before:bg-[var(--color-brand)] before:rounded-full' : ''}
       `}

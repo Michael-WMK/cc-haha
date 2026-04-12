@@ -5,9 +5,14 @@ import { Input } from '../components/shared/Input'
 import { Button } from '../components/shared/Button'
 import { DirectoryPicker } from '../components/shared/DirectoryPicker'
 
+type ImTab = 'feishu' | 'telegram'
+
 export function AdapterSettings() {
   const t = useTranslation()
   const { config, isLoading, fetchConfig, updateConfig, generatePairingCode, removePairedUser } = useAdapterStore()
+
+  // Active IM tab —— Feishu 默认展示，在前
+  const [activeIm, setActiveIm] = useState<ImTab>('feishu')
 
   // Server —— serverUrl 不再暴露在 UI 里（见下方 Server URL 注释），
   // 桌面端用 Tauri env var 注入动态端口。
@@ -227,90 +232,98 @@ export function AdapterSettings() {
         </p>
       </div>
 
-      {/* Telegram */}
+      {/* IM Adapter Tabs —— Feishu 默认在前，Telegram 在后 */}
       <section className="rounded-xl border border-[var(--color-border)] overflow-hidden">
-        <div className="flex items-center gap-2 px-4 py-3 bg-[var(--color-surface-hover)] border-b border-[var(--color-border)]">
-          <span className="text-sm font-semibold text-[var(--color-text-primary)]">{t('settings.adapters.telegram')}</span>
-        </div>
-        <div className="p-4 space-y-4">
-          <Input
-            label={t('settings.adapters.botToken')}
-            type="password"
-            value={tgBotToken}
-            onChange={(e) => setTgBotToken(e.target.value)}
-            placeholder={t('settings.adapters.botTokenPlaceholder')}
+        <div role="tablist" aria-label="IM adapter" className="flex items-stretch border-b border-[var(--color-border)] bg-[var(--color-surface-hover)]">
+          <ImTabButton
+            label={t('settings.adapters.feishu')}
+            active={activeIm === 'feishu'}
+            onClick={() => setActiveIm('feishu')}
           />
-          <div className="flex flex-col gap-1">
-            <Input
-              label={t('settings.adapters.allowedUsers')}
-              value={tgAllowedUsers}
-              onChange={(e) => setTgAllowedUsers(e.target.value)}
-              placeholder={t('settings.adapters.tgAllowedUsersPlaceholder')}
-            />
-            <p className="text-xs text-[var(--color-text-tertiary)]">{t('settings.adapters.allowedUsersHint')}</p>
-          </div>
+          <ImTabButton
+            label={t('settings.adapters.telegram')}
+            active={activeIm === 'telegram'}
+            onClick={() => setActiveIm('telegram')}
+          />
         </div>
-      </section>
 
-      {/* Feishu */}
-      <section className="rounded-xl border border-[var(--color-border)] overflow-hidden">
-        <div className="flex items-center gap-2 px-4 py-3 bg-[var(--color-surface-hover)] border-b border-[var(--color-border)]">
-          <span className="text-sm font-semibold text-[var(--color-text-primary)]">{t('settings.adapters.feishu')}</span>
-        </div>
-        <div className="p-4 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label={t('settings.adapters.appId')}
-              value={fsAppId}
-              onChange={(e) => setFsAppId(e.target.value)}
-              placeholder={t('settings.adapters.appIdPlaceholder')}
-            />
-            <Input
-              label={t('settings.adapters.appSecret')}
-              type="password"
-              value={fsAppSecret}
-              onChange={(e) => setFsAppSecret(e.target.value)}
-              placeholder={t('settings.adapters.appSecretPlaceholder')}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label={t('settings.adapters.encryptKey')}
-              type="password"
-              value={fsEncryptKey}
-              onChange={(e) => setFsEncryptKey(e.target.value)}
-              placeholder={t('settings.adapters.encryptKeyPlaceholder')}
-            />
-            <Input
-              label={t('settings.adapters.verificationToken')}
-              type="password"
-              value={fsVerificationToken}
-              onChange={(e) => setFsVerificationToken(e.target.value)}
-              placeholder={t('settings.adapters.verificationTokenPlaceholder')}
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <Input
-              label={t('settings.adapters.allowedUsers')}
-              value={fsAllowedUsers}
-              onChange={(e) => setFsAllowedUsers(e.target.value)}
-              placeholder={t('settings.adapters.fsAllowedUsersPlaceholder')}
-            />
-            <p className="text-xs text-[var(--color-text-tertiary)]">{t('settings.adapters.allowedUsersHint')}</p>
-          </div>
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={fsStreamingCard}
-              onChange={(e) => setFsStreamingCard(e.target.checked)}
-              className="w-4 h-4 rounded border-[var(--color-border)] accent-[var(--color-brand)]"
-            />
-            <div>
-              <span className="text-sm text-[var(--color-text-primary)]">{t('settings.adapters.streamingCard')}</span>
-              <p className="text-xs text-[var(--color-text-tertiary)]">{t('settings.adapters.streamingCardDesc')}</p>
+        {activeIm === 'feishu' && (
+          <div className="p-4 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label={t('settings.adapters.appId')}
+                value={fsAppId}
+                onChange={(e) => setFsAppId(e.target.value)}
+                placeholder={t('settings.adapters.appIdPlaceholder')}
+              />
+              <Input
+                label={t('settings.adapters.appSecret')}
+                type="password"
+                value={fsAppSecret}
+                onChange={(e) => setFsAppSecret(e.target.value)}
+                placeholder={t('settings.adapters.appSecretPlaceholder')}
+              />
             </div>
-          </label>
-        </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label={t('settings.adapters.encryptKey')}
+                type="password"
+                value={fsEncryptKey}
+                onChange={(e) => setFsEncryptKey(e.target.value)}
+                placeholder={t('settings.adapters.encryptKeyPlaceholder')}
+              />
+              <Input
+                label={t('settings.adapters.verificationToken')}
+                type="password"
+                value={fsVerificationToken}
+                onChange={(e) => setFsVerificationToken(e.target.value)}
+                placeholder={t('settings.adapters.verificationTokenPlaceholder')}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <Input
+                label={t('settings.adapters.allowedUsers')}
+                value={fsAllowedUsers}
+                onChange={(e) => setFsAllowedUsers(e.target.value)}
+                placeholder={t('settings.adapters.fsAllowedUsersPlaceholder')}
+              />
+              <p className="text-xs text-[var(--color-text-tertiary)]">{t('settings.adapters.allowedUsersHint')}</p>
+            </div>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={fsStreamingCard}
+                onChange={(e) => setFsStreamingCard(e.target.checked)}
+                className="w-4 h-4 rounded border-[var(--color-border)] accent-[var(--color-brand)]"
+              />
+              <div>
+                <span className="text-sm text-[var(--color-text-primary)]">{t('settings.adapters.streamingCard')}</span>
+                <p className="text-xs text-[var(--color-text-tertiary)]">{t('settings.adapters.streamingCardDesc')}</p>
+              </div>
+            </label>
+          </div>
+        )}
+
+        {activeIm === 'telegram' && (
+          <div className="p-4 space-y-4">
+            <Input
+              label={t('settings.adapters.botToken')}
+              type="password"
+              value={tgBotToken}
+              onChange={(e) => setTgBotToken(e.target.value)}
+              placeholder={t('settings.adapters.botTokenPlaceholder')}
+            />
+            <div className="flex flex-col gap-1">
+              <Input
+                label={t('settings.adapters.allowedUsers')}
+                value={tgAllowedUsers}
+                onChange={(e) => setTgAllowedUsers(e.target.value)}
+                placeholder={t('settings.adapters.tgAllowedUsersPlaceholder')}
+              />
+              <p className="text-xs text-[var(--color-text-tertiary)]">{t('settings.adapters.allowedUsersHint')}</p>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Save */}
@@ -332,5 +345,31 @@ export function AdapterSettings() {
         )}
       </div>
     </div>
+  )
+}
+
+function ImTabButton({
+  label,
+  active,
+  onClick,
+}: {
+  label: string
+  active: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={`relative px-4 py-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-inset ${
+        active
+          ? 'text-[var(--color-text-primary)] font-semibold after:absolute after:left-3 after:right-3 after:bottom-0 after:h-[2px] after:bg-[var(--color-brand)]'
+          : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+      }`}
+    >
+      {label}
+    </button>
   )
 }

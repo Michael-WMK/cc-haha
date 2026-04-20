@@ -289,6 +289,10 @@ export const zh: Record<TranslationKey, string> = {
   'settings.computerUse.flagSystemKeys': '系统快捷键',
 
   // Settings > General
+  'settings.general.appearanceTitle': '配色主题',
+  'settings.general.appearanceDescription': '在亮色与暗色工作区之间切换，不影响原有亮色主题。',
+  'settings.general.appearance.light': '亮色',
+  'settings.general.appearance.dark': '暗色',
   'settings.general.languageTitle': '语言',
   'settings.general.languageDescription': '选择应用程序的显示语言。',
   'settings.general.effortTitle': '推理强度',
@@ -334,6 +338,28 @@ export const zh: Record<TranslationKey, string> = {
   'permission.hideDetails': '隐藏详情',
   'permission.showFullInput': '显示完整输入',
   'permission.replacingContent': '替换文件内容',
+
+  // ─── Computer Use Approval ──────────────────────────────────────
+  'computerUseApproval.titleApps': 'Computer Use 想控制这些应用',
+  'computerUseApproval.titleTcc': 'Computer Use 需要 macOS 权限',
+  'computerUseApproval.reason': '请求原因',
+  'computerUseApproval.allow': '本次会话允许',
+  'computerUseApproval.deny': '拒绝',
+  'computerUseApproval.alreadyGranted': '本次会话已授权',
+  'computerUseApproval.notInstalled': '应用未安装',
+  'computerUseApproval.sensitiveApp': '该应用属于高敏感类别，请额外确认后再授权。',
+  'computerUseApproval.alsoRequested': '同时请求了',
+  'computerUseApproval.hideWhileWorking': 'Claude 工作时会隐藏另外 {count} 个应用。',
+  'computerUseApproval.hideWhileWorkingRestore': 'Claude 工作时会隐藏另外 {count} 个应用，结束后会自动恢复。',
+  'computerUseApproval.accessibility': '辅助功能',
+  'computerUseApproval.screenRecording': '屏幕录制',
+  'computerUseApproval.granted': '已授权',
+  'computerUseApproval.notGranted': '未授权',
+  'computerUseApproval.openAccessibility': '打开辅助功能设置',
+  'computerUseApproval.openScreenRecording': '打开屏幕录制设置',
+  'computerUseApproval.tryAgain': '稍后重试',
+  'computerUseApproval.tccHint': '先在系统设置里授予缺失权限，返回后再点“稍后重试”。',
+  'computerUseApproval.tryAgainHint': '“稍后重试”会把控制权交还给 Claude，让它在 macOS 权限生效后重新调用 request_access。',
 
   // ─── Ask User Question ──────────────────────────────────────
   'question.needsInput': 'Claude 需要你的输入',

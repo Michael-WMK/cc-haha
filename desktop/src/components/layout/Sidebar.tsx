@@ -23,6 +23,8 @@ export function Sidebar() {
   const renameSession = useSessionStore((s) => s.renameSession)
   const addToast = useUIStore((s) => s.addToast)
   const activeTabId = useTabStore((s) => s.activeTabId)
+  const closeTab = useTabStore((s) => s.closeTab)
+  const disconnectSession = useChatStore((s) => s.disconnectSession)
   const [searchQuery, setSearchQuery] = useState('')
   const [contextMenu, setContextMenu] = useState<{ id: string; x: number; y: number } | null>(null)
   const [renamingId, setRenamingId] = useState<string | null>(null)
@@ -64,7 +66,9 @@ export function Sidebar() {
   const handleDelete = useCallback(async (id: string) => {
     setContextMenu(null)
     await deleteSession(id)
-  }, [deleteSession])
+    disconnectSession(id)
+    closeTab(id)
+  }, [closeTab, deleteSession, disconnectSession])
 
   const handleStartRename = useCallback((id: string, currentTitle: string) => {
     setContextMenu(null)
@@ -113,8 +117,8 @@ export function Sidebar() {
       <div className={`px-3 pb-1.5 flex items-center justify-between ${isTauri && !isWindows ? 'pt-[44px]' : 'pt-3'}`}>
         <div className="flex items-center gap-2.5">
           <img src="/app-icon.jpg" alt="" className="h-8 w-8 rounded-lg flex-shrink-0" />
-          <span className="text-[13px] font-semibold tracking-tight text-[var(--color-text-primary)]" style={{ fontFamily: "'Manrope', sans-serif" }}>
-            Claude Code <span className="text-[#D97757]">Haha</span>
+          <span className="text-[13px] font-semibold tracking-tight text-[var(--color-text-primary)]" style={{ fontFamily: 'var(--font-headline)' }}>
+            Claude Code <span className="text-[var(--color-primary-container)]">Haha</span>
           </span>
         </div>
         <a

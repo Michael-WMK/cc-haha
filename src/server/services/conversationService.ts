@@ -10,6 +10,10 @@ import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
 import { sessionService } from './sessionService.js'
+import {
+  buildClaudeCliArgs,
+  resolveClaudeCliLauncher,
+} from '../../utils/desktopBundledCli.js'
 
 type AttachmentRef = {
   type: 'file' | 'image'
@@ -655,35 +659,13 @@ export class ConversationService {
     }
   }
 
-  private resolveBundledCliPath(): string | null {
-    // 桌面端 P0+P2 之后只有一个合并的 sidecar 二进制 —— `claude-sidecar`，
-    // 它通过第一个 positional 参数 (server / cli) 选模式。当前进程要么
-    // 已经是这个 sidecar 自己（spawn 子 CLI 时复用同一个文件），要么是
-    // 旧 dev 模式下走 bin/claude-haha。这里支持两种命名：
-    //   - 桌面端 prod build：进程名 claude-sidecar*
-    //   - 旧 server-only 二进制（向后兼容）：claude-server*
-    const execPath = process.execPath
-    const execName = path.basename(execPath)
-
-    if (execName.startsWith('claude-sidecar')) {
-      // 复用同一个二进制，调用 cli 模式
-      return execPath
-    }
-
-    if (execName.startsWith('claude-server')) {
-      const bundledCliPath = path.join(
-        path.dirname(execPath),
-        execName.replace(/^claude-server/, 'claude-cli'),
-      )
-      return fs.existsSync(bundledCliPath) ? bundledCliPath : null
-    }
-
-    return null
-  }
-
   private resolveCliArgs(baseArgs: string[]): string[] {
-    const cliCommand = process.env.CLAUDE_CLI_PATH || this.resolveBundledCliPath()
-    if (!cliCommand) {
+    const launcher = resolveClaudeCliLauncher({
+      cliPath: process.env.CLAUDE_CLI_PATH,
+      execPath: process.execPath,
+    })
+
+    if (!launcher) {
       if (process.platform === 'win32') {
         return [
           process.execPath,
@@ -694,35 +676,7 @@ export class ConversationService {
       return [path.resolve(import.meta.dir, '../../../bin/claude-haha'), ...baseArgs]
     }
 
-    if (/\.(?:[cm]?[jt]s|tsx?)$/i.test(cliCommand)) {
-      return ['bun', cliCommand, ...baseArgs]
-    }
-
-    const cliBaseName = path.basename(cliCommand)
-
-    // 合并 sidecar 模式：第一个参数必须是 'cli'，后面跟 --app-root 透传
-    if (cliBaseName.startsWith('claude-sidecar')) {
-      const args = ['cli', ...baseArgs]
-      if (process.env.CLAUDE_APP_ROOT) {
-        return [cliCommand, 'cli', '--app-root', process.env.CLAUDE_APP_ROOT, ...baseArgs]
-      }
-      return [cliCommand, ...args]
-    }
-
-    // 旧两段式 sidecar：claude-cli 二进制需要 --app-root
-    if (
-      process.env.CLAUDE_APP_ROOT &&
-      cliBaseName.startsWith('claude-cli')
-    ) {
-      return [
-        cliCommand,
-        '--app-root',
-        process.env.CLAUDE_APP_ROOT,
-        ...baseArgs,
-      ]
-    }
-
-    return [cliCommand, ...baseArgs]
+    return buildClaudeCliArgs(launcher, baseArgs, process.env.CLAUDE_APP_ROOT)
   }
 
   private clearStaleLock(sessionId: string): boolean {

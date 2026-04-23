@@ -16,11 +16,25 @@ import { ProviderService } from '../services/providerService.js'
 
 let tmpDir: string
 let originalConfigDir: string | undefined
+let originalHome: string | undefined
+let originalUserProfile: string | undefined
+let originalShell: string | undefined
+let originalPath: string | undefined
+let originalCliPath: string | undefined
 
 async function setup() {
   tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'claude-test-'))
   originalConfigDir = process.env.CLAUDE_CONFIG_DIR
+  originalHome = process.env.HOME
+  originalUserProfile = process.env.USERPROFILE
+  originalShell = process.env.SHELL
+  originalPath = process.env.PATH
+  originalCliPath = process.env.CLAUDE_CLI_PATH
   process.env.CLAUDE_CONFIG_DIR = tmpDir
+  process.env.HOME = tmpDir
+  process.env.USERPROFILE = tmpDir
+  process.env.SHELL = '/bin/zsh'
+  process.env.PATH = ''
 }
 
 async function teardown() {
@@ -29,6 +43,37 @@ async function teardown() {
   } else {
     delete process.env.CLAUDE_CONFIG_DIR
   }
+
+  if (originalHome !== undefined) {
+    process.env.HOME = originalHome
+  } else {
+    delete process.env.HOME
+  }
+
+  if (originalUserProfile !== undefined) {
+    process.env.USERPROFILE = originalUserProfile
+  } else {
+    delete process.env.USERPROFILE
+  }
+
+  if (originalShell !== undefined) {
+    process.env.SHELL = originalShell
+  } else {
+    delete process.env.SHELL
+  }
+
+  if (originalPath !== undefined) {
+    process.env.PATH = originalPath
+  } else {
+    delete process.env.PATH
+  }
+
+  if (originalCliPath !== undefined) {
+    process.env.CLAUDE_CLI_PATH = originalCliPath
+  } else {
+    delete process.env.CLAUDE_CLI_PATH
+  }
+
   await fs.rm(tmpDir, { recursive: true, force: true })
 }
 
@@ -201,6 +246,26 @@ describe('Settings API', () => {
     const res2 = await handleSettingsApi(r2, u2, s2)
     const body2 = await res2.json()
     expect(body2.model).toBe('claude-opus-4-7')
+  })
+
+  it('GET /api/settings/cli-launcher should expose bundled launcher status', async () => {
+    if (process.platform === 'win32') return
+
+    const sidecarPath = path.join(tmpDir, 'claude-sidecar')
+    await fs.writeFile(sidecarPath, '#!/bin/sh\necho desktop-sidecar\n', {
+      encoding: 'utf8',
+      mode: 0o755,
+    })
+    process.env.CLAUDE_CLI_PATH = sidecarPath
+
+    const { req, url, segments } = makeRequest('GET', '/api/settings/cli-launcher')
+    const res = await handleSettingsApi(req, url, segments)
+
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.command).toBe('claude-haha')
+    expect(body.installed).toBe(true)
+    expect(body.availableInNewTerminals).toBe(true)
   })
 
   it('GET /api/permissions/mode should return default mode', async () => {

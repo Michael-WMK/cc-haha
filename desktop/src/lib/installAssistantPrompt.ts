@@ -16,6 +16,8 @@ Execution rules:
 8. Keep unrelated workspace files untouched.
 
 Command guidance:
+- In Claude Code Haha Desktop installer sessions, the Bash shell already exposes a \`claude\` command wired to the bundled desktop CLI. Prefer that and do not spend time checking whether a separate global Claude CLI is installed.
+- Outside the desktop app, the bundled CLI is exposed to system terminals as \`claude-haha\`. Inside installer sessions, continue to use the injected \`claude\` command.
 - Plugin install: run Bash with \`claude plugin install <plugin-id> --scope <scope>\`
 - For a normal plugin installation request, do both:
   1. \`claude plugin install <plugin-id> --scope <scope>\`

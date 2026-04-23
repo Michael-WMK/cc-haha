@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { sessionsApi } from '../../api/sessions'
+import { settingsApi, type CliLauncherStatus } from '../../api/settings'
 import { useChatStore } from '../../stores/chatStore'
 import { useMcpStore } from '../../stores/mcpStore'
 import { usePluginStore } from '../../stores/pluginStore'
@@ -65,6 +66,8 @@ export function InstallCenter() {
   const [contextDir, setContextDir] = useState(() => readStoredValue(INSTALLER_CONTEXT_KEY))
   const [draft, setDraft] = useState('')
   const [isCreating, setIsCreating] = useState(false)
+  const [cliLauncherStatus, setCliLauncherStatus] = useState<CliLauncherStatus | null>(null)
+  const [isCliLauncherLoading, setIsCliLauncherLoading] = useState(true)
   const createPromiseRef = useRef<Promise<string> | null>(null)
   const previousChatStateRef = useRef<'idle' | 'thinking' | 'tool_executing' | 'streaming' | 'permission_pending'>('idle')
 
@@ -91,6 +94,32 @@ export function InstallCenter() {
   useEffect(() => {
     writeStoredValue(INSTALLER_CONTEXT_KEY, contextDir.trim())
   }, [contextDir])
+
+  useEffect(() => {
+    let cancelled = false
+
+    void (async () => {
+      setIsCliLauncherLoading(true)
+      try {
+        const status = await settingsApi.getCliLauncherStatus()
+        if (!cancelled) {
+          setCliLauncherStatus(status)
+        }
+      } catch {
+        if (!cancelled) {
+          setCliLauncherStatus(null)
+        }
+      } finally {
+        if (!cancelled) {
+          setIsCliLauncherLoading(false)
+        }
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     if (!sessionId) return
@@ -178,11 +207,15 @@ export function InstallCenter() {
 
   const handleRefresh = async () => {
     const cwd = installerSession?.workDir || undefined
-    await Promise.all([
+    const [launcherStatus] = await Promise.all([
+      settingsApi.getCliLauncherStatus().catch(() => null),
       fetchPlugins(cwd),
       fetchSkills(cwd),
       fetchServers(cwd ? [cwd] : undefined, cwd),
     ])
+    if (launcherStatus) {
+      setCliLauncherStatus(launcherStatus)
+    }
     addToast({
       type: 'success',
       message: t('settings.install.refreshDone'),
@@ -243,6 +276,38 @@ export function InstallCenter() {
           </div>
         </div>
       </section>
+
+      {(isCliLauncherLoading || cliLauncherStatus?.supported) && (
+        <section className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">
+                {t('settings.install.cliTitle')}
+              </h3>
+              <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
+                {t('settings.install.cliDescription')}
+              </p>
+            </div>
+            <div className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface-container-low)] px-3 py-1 text-sm font-semibold text-[var(--color-text-primary)]">
+              {cliLauncherStatus?.command || 'claude-haha'}
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-container-low)] p-4">
+            {isCliLauncherLoading ? (
+              <p className="text-sm text-[var(--color-text-secondary)]">
+                {t('settings.install.cliLoading')}
+              </p>
+            ) : cliLauncherStatus ? (
+              <CliLauncherStatusPanel status={cliLauncherStatus} />
+            ) : (
+              <p className="text-sm text-[var(--color-danger)]">
+                {t('settings.install.cliUnavailable')}
+              </p>
+            )}
+          </div>
+        </section>
+      )}
 
       <section className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -411,6 +476,60 @@ export function InstallCenter() {
           )}
         </div>
       </section>
+    </div>
+  )
+}
+
+function CliLauncherStatusPanel({ status }: { status: CliLauncherStatus }) {
+  const t = useTranslation()
+
+  let statusText = t('settings.install.cliUnavailable')
+  let statusClassName = 'border-[var(--color-danger)]/25 bg-[var(--color-danger)]/10 text-[var(--color-danger)]'
+
+  if (status.installed && status.availableInNewTerminals) {
+    if (status.needsTerminalRestart) {
+      statusText = t('settings.install.cliNeedsRestart')
+      statusClassName = 'border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]'
+    } else {
+      statusText = t('settings.install.cliReady')
+      statusClassName = 'border-[var(--color-success)]/25 bg-[var(--color-success)]/10 text-[var(--color-success)]'
+    }
+  } else if (status.installed) {
+    statusText = t('settings.install.cliPathMissing')
+    statusClassName = 'border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]'
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <span
+          className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClassName}`}
+        >
+          {statusText}
+        </span>
+        <span className="text-xs text-[var(--color-text-tertiary)]">
+          {t('settings.install.cliLocation')}
+        </span>
+        <span className="font-mono text-xs text-[var(--color-text-primary)] break-all">
+          {status.launcherPath}
+        </span>
+      </div>
+
+      {status.configTarget && (
+        <p className="text-xs text-[var(--color-text-tertiary)]">
+          {t('settings.install.cliConfigTarget', {
+            target: status.configTarget,
+          })}
+        </p>
+      )}
+
+      {status.lastError && (
+        <p className="text-xs text-[var(--color-danger)]">
+          {t('settings.install.cliError', {
+            message: status.lastError,
+          })}
+        </p>
+      )}
     </div>
   )
 }

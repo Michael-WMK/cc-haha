@@ -23,6 +23,12 @@ export const OPENAI_CODEX_MODEL_CATALOG: OpenAIModelCatalogEntry[] = [
     descriptionForModel: 'GPT-5.4 - strong general-purpose model',
   },
   {
+    value: 'gpt-5.5',
+    label: 'GPT-5.5',
+    description: 'Latest general-purpose model',
+    descriptionForModel: 'GPT-5.5 - latest general-purpose model',
+  },
+  {
     value: OPENAI_DEFAULT_HAIKU_MODEL,
     label: 'GPT-5.4 Mini',
     description: 'Fastest for quick tasks',
@@ -72,6 +78,8 @@ export function getOpenAIModelDisplayName(model: string): string | null {
   switch (model.trim().toLowerCase()) {
     case 'gpt-5.3-codex':
       return 'GPT-5.3 Codex'
+    case 'gpt-5.5':
+      return 'GPT-5.5'
     case 'gpt-5.4':
       return 'GPT-5.4'
     case 'gpt-5.4-mini':

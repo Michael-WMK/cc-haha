@@ -27,6 +27,7 @@ import {
   OPENAI_OAUTH_DUMMY_KEY,
   shouldUseOpenAICodexAuth,
 } from '../openaiAuth/fetch.js'
+import { isOpenAIResponsesModel } from '../openaiAuth/models.js'
 import { isDebugToStdErr, logForDebugging } from '../../utils/debug.js'
 import {
   getAWSRegion,
@@ -137,11 +138,13 @@ export async function getAnthropicClient({
   await checkAndRefreshOAuthTokenIfNeeded()
   logForDebugging('[API:auth] OAuth token check complete')
 
+  const isOpenAIModel = model ? isOpenAIResponsesModel(model) : false
   const usingOpenAICodex =
     shouldUseOpenAICodexAuth() &&
     !isClaudeAISubscriber() &&
-    !process.env.ANTHROPIC_AUTH_TOKEN &&
-    !(apiKey || getAnthropicApiKey())
+    (isOpenAIModel ||
+      (!process.env.ANTHROPIC_AUTH_TOKEN &&
+        !(apiKey || getAnthropicApiKey())))
 
   if (!isClaudeAISubscriber() && !usingOpenAICodex) {
     await configureApiKeyHeaders(defaultHeaders, getIsNonInteractiveSession())

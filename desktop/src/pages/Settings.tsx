@@ -7,7 +7,7 @@ import { ConfirmDialog } from '../components/shared/ConfirmDialog'
 import { Input } from '../components/shared/Input'
 import { Button } from '../components/shared/Button'
 import { Dropdown } from '../components/shared/Dropdown'
-import type { PermissionMode, EffortLevel, ThemeMode } from '../types/settings'
+import type { PermissionMode, EffortLevel, ThemeMode, WebSearchMode } from '../types/settings'
 import type { Locale } from '../i18n'
 import type { SavedProvider, UpdateProviderInput, ProviderTestResult, ModelMapping, ApiFormat } from '../types/provider'
 import type { ProviderPreset } from '../types/providerPreset'
@@ -880,8 +880,16 @@ function GeneralSettings() {
     setTheme,
     skipWebFetchPreflight,
     setSkipWebFetchPreflight,
+    webSearch,
+    setWebSearch,
   } = useSettingsStore()
   const t = useTranslation()
+  const [webSearchDraft, setWebSearchDraft] = useState(webSearch)
+  const webSearchDirty = JSON.stringify(webSearchDraft) !== JSON.stringify(webSearch)
+
+  useEffect(() => {
+    setWebSearchDraft(webSearch)
+  }, [webSearch])
 
   const EFFORT_LABELS: Record<EffortLevel, string> = {
     low: t('settings.general.effort.low'),
@@ -898,6 +906,14 @@ function GeneralSettings() {
   const THEMES: Array<{ value: ThemeMode; label: string }> = [
     { value: 'light', label: t('settings.general.appearance.light') },
     { value: 'dark', label: t('settings.general.appearance.dark') },
+  ]
+
+  const WEB_SEARCH_MODES: Array<{ value: WebSearchMode; label: string }> = [
+    { value: 'auto', label: t('settings.general.webSearch.mode.auto') },
+    { value: 'tavily', label: t('settings.general.webSearch.mode.tavily') },
+    { value: 'brave', label: t('settings.general.webSearch.mode.brave') },
+    { value: 'anthropic', label: t('settings.general.webSearch.mode.anthropic') },
+    { value: 'disabled', label: t('settings.general.webSearch.mode.disabled') },
   ]
 
   return (
@@ -1001,6 +1017,96 @@ function GeneralSettings() {
             </div>
           </div>
         </label>
+      </div>
+
+      <div className="mt-8">
+        <h2 className="text-base font-semibold text-[var(--color-text-primary)] mb-1">{t('settings.general.webSearchTitle')}</h2>
+        <p className="text-sm text-[var(--color-text-tertiary)] mb-3">{t('settings.general.webSearchDescription')}</p>
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-container-low)] px-4 py-4">
+          <div className="grid grid-cols-5 gap-1.5 mb-4">
+            {WEB_SEARCH_MODES.map(({ value, label }) => (
+              <button
+                key={value}
+                onClick={() => setWebSearchDraft({ ...webSearchDraft, mode: value })}
+                className={`h-9 px-2 text-xs font-semibold rounded-lg border transition-all truncate ${
+                  (webSearchDraft.mode ?? 'auto') === value
+                    ? 'bg-[var(--color-brand)] text-white border-[var(--color-brand)]'
+                    : 'border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'
+                }`}
+                title={label}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 gap-3">
+            <Input
+              id="web-search-tavily-key"
+              type="password"
+              label={t('settings.general.webSearchTavilyKey')}
+              value={webSearchDraft.tavilyApiKey ?? ''}
+              placeholder="tvly-..."
+              autoComplete="off"
+              onChange={(event) =>
+                setWebSearchDraft({
+                  ...webSearchDraft,
+                  tavilyApiKey: event.target.value,
+                })
+              }
+            />
+            <div className="-mt-1 flex items-center justify-between gap-3 text-xs text-[var(--color-text-tertiary)]">
+              <span>{t('settings.general.webSearchTavilyFreeHint')}</span>
+              <a
+                href="https://app.tavily.com/home"
+                target="_blank"
+                rel="noreferrer"
+                aria-label={t('settings.general.webSearchTavilyApiKeyLink')}
+                className="font-medium text-[var(--color-brand)] hover:underline whitespace-nowrap"
+              >
+                {t('settings.general.webSearchGetApiKey')}
+              </a>
+            </div>
+            <Input
+              id="web-search-brave-key"
+              type="password"
+              label={t('settings.general.webSearchBraveKey')}
+              value={webSearchDraft.braveApiKey ?? ''}
+              placeholder={t('settings.general.webSearchBravePlaceholder')}
+              autoComplete="off"
+              onChange={(event) =>
+                setWebSearchDraft({
+                  ...webSearchDraft,
+                  braveApiKey: event.target.value,
+                })
+              }
+            />
+            <div className="-mt-1 flex items-center justify-between gap-3 text-xs text-[var(--color-text-tertiary)]">
+              <span>{t('settings.general.webSearchBraveFreeHint')}</span>
+              <a
+                href="https://api-dashboard.search.brave.com/app/keys"
+                target="_blank"
+                rel="noreferrer"
+                aria-label={t('settings.general.webSearchBraveApiKeyLink')}
+                className="font-medium text-[var(--color-brand)] hover:underline whitespace-nowrap"
+              >
+                {t('settings.general.webSearchGetApiKey')}
+              </a>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <p className="text-xs text-[var(--color-text-tertiary)] leading-5">
+              {t('settings.general.webSearchHint')}
+            </p>
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={!webSearchDirty}
+              onClick={() => void setWebSearch(webSearchDraft)}
+            >
+              {t('settings.general.webSearchSave')}
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   )

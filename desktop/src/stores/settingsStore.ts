@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { settingsApi } from '../api/settings'
 import { modelsApi } from '../api/models'
-import type { PermissionMode, EffortLevel, ModelInfo, ThemeMode } from '../types/settings'
+import type { PermissionMode, EffortLevel, ModelInfo, ThemeMode, WebSearchSettings } from '../types/settings'
 import type { Locale } from '../i18n'
 import { useUIStore } from './uiStore'
 
@@ -25,6 +25,7 @@ type SettingsStore = {
   locale: Locale
   theme: ThemeMode
   skipWebFetchPreflight: boolean
+  webSearch: WebSearchSettings
   isLoading: boolean
   error: string | null
 
@@ -36,6 +37,7 @@ type SettingsStore = {
   setLocale: (locale: Locale) => void
   setTheme: (theme: ThemeMode) => Promise<void>
   setSkipWebFetchPreflight: (enabled: boolean) => Promise<void>
+  setWebSearch: (settings: WebSearchSettings) => Promise<void>
 }
 
 export const useSettingsStore = create<SettingsStore>((set, get) => ({
@@ -48,6 +50,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
   locale: getStoredLocale(),
   theme: useUIStore.getState().theme,
   skipWebFetchPreflight: true,
+  webSearch: { mode: 'auto', tavilyApiKey: '', braveApiKey: '' },
   isLoading: false,
   error: null,
 
@@ -72,6 +75,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
         thinkingEnabled: userSettings.alwaysThinkingEnabled !== false,
         theme,
         skipWebFetchPreflight: userSettings.skipWebFetchPreflight !== false,
+        webSearch: normalizeWebSearchSettings(userSettings.webSearch),
         isLoading: false,
         error: null,
       })
@@ -145,4 +149,23 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
       set({ skipWebFetchPreflight: prev })
     }
   },
+
+  setWebSearch: async (webSearch) => {
+    const prev = get().webSearch
+    const next = normalizeWebSearchSettings(webSearch)
+    set({ webSearch: next })
+    try {
+      await settingsApi.updateUser({ webSearch: next })
+    } catch {
+      set({ webSearch: prev })
+    }
+  },
 }))
+
+function normalizeWebSearchSettings(settings: WebSearchSettings | undefined): WebSearchSettings {
+  return {
+    mode: settings?.mode ?? 'auto',
+    tavilyApiKey: settings?.tavilyApiKey ?? '',
+    braveApiKey: settings?.braveApiKey ?? '',
+  }
+}

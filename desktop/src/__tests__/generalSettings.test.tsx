@@ -108,11 +108,15 @@ describe('Settings > General tab', () => {
       locale: 'en',
       thinkingEnabled: true,
       skipWebFetchPreflight: true,
+      webSearch: { mode: 'auto', tavilyApiKey: '', braveApiKey: '' },
       setThinkingEnabled: vi.fn().mockImplementation(async (enabled: boolean) => {
         useSettingsStore.setState({ thinkingEnabled: enabled })
       }),
       setSkipWebFetchPreflight: vi.fn().mockImplementation(async (enabled: boolean) => {
         useSettingsStore.setState({ skipWebFetchPreflight: enabled })
+      }),
+      setWebSearch: vi.fn().mockImplementation(async (webSearch) => {
+        useSettingsStore.setState({ webSearch })
       }),
     })
 
@@ -164,6 +168,39 @@ describe('Settings > General tab', () => {
     fireEvent.click(toggle)
 
     expect(useSettingsStore.getState().setThinkingEnabled).toHaveBeenCalledWith(false)
+  })
+
+  it('saves WebSearch fallback provider settings', () => {
+    render(<Settings />)
+
+    fireEvent.click(screen.getByText('General'))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tavily' }))
+    fireEvent.change(screen.getByLabelText('Tavily API key'), {
+      target: { value: 'tvly-test-key' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(useSettingsStore.getState().setWebSearch).toHaveBeenCalledWith({
+      mode: 'tavily',
+      tavilyApiKey: 'tvly-test-key',
+      braveApiKey: '',
+    })
+  })
+
+  it('links to WebSearch provider API key dashboards', () => {
+    render(<Settings />)
+
+    fireEvent.click(screen.getByText('General'))
+
+    expect(screen.getByRole('link', { name: 'Get Tavily API key' })).toHaveAttribute(
+      'href',
+      'https://app.tavily.com/home',
+    )
+    expect(screen.getByRole('link', { name: 'Get Brave Search API key' })).toHaveAttribute(
+      'href',
+      'https://api-dashboard.search.brave.com/app/keys',
+    )
   })
 
   it('keeps extension tabs available alongside the terminal tab', () => {

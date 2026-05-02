@@ -1,7 +1,7 @@
 # Claude Code Haha
 
 <p align="center">
-  <img src="docs/images/logo-horizontal.jpg" alt="Claude Code Haha" width="480">
+  <img src="docs/images/logo-horizontal.png" alt="Claude Code Haha" width="480">
 </p>
 
 <div align="center">
@@ -20,8 +20,33 @@
 A **locally runnable version** repaired from the leaked Claude Code source, with support for any Anthropic-compatible API endpoint (MiniMax, OpenRouter, etc.). Beyond the full TUI, we've also completed Computer Use (macOS / Windows), built a GUI **desktop app**, and enabled **full remote control** via Telegram / Feishu.
 
 <p align="center">
-  <a href="#features">Features</a> · <a href="#desktop-preview">Desktop</a> · <a href="#architecture-overview">Architecture</a> · <a href="#quick-start">Quick Start</a> · <a href="docs/en/guide/env-vars.md">Env Vars</a> · <a href="docs/en/guide/faq.md">FAQ</a> · <a href="docs/en/guide/global-usage.md">Global Usage</a> · <a href="#more-documentation">More Docs</a>
+  <a href="#desktop-preview">Desktop</a> · <a href="#features">Features</a> · <a href="#architecture-overview">Architecture</a> · <a href="#quick-start">Quick Start</a> · <a href="docs/en/guide/env-vars.md">Env Vars</a> · <a href="docs/en/guide/faq.md">FAQ</a> · <a href="docs/en/guide/global-usage.md">Global Usage</a> · <a href="#more-documentation">More Docs</a>
 </p>
+
+---
+
+## Desktop Preview
+
+The Claude Code Haha desktop app brings sessions, multi-project navigation, code diffs, permission review, provider setup, scheduled tasks, and IM adapters into one graphical workspace for daily development flows beyond the terminal.
+
+<p align="center">
+  <a href="https://github.com/NanmiCoder/cc-haha/releases"><img src="https://img.shields.io/badge/⬇_Download_Desktop-macOS_%7C_Windows-D97757?style=for-the-badge" alt="Download Desktop"></a>
+  &nbsp;
+  <a href="docs/desktop/04-installation.md"><img src="https://img.shields.io/badge/📖_Install_Guide-Guide-gray?style=for-the-badge" alt="Install Guide"></a>
+</p>
+
+<table>
+  <tr>
+    <td align="center" width="33%"><img src="docs/images/desktop_ui/01_full_ui.png" alt="Main UI"><br><b>Main Interface</b></td>
+    <td align="center" width="33%"><img src="docs/images/desktop_ui/02_edit_code.png" alt="Code Editing"><br><b>Code Editing & Diff View</b></td>
+    <td align="center" width="33%"><img src="docs/images/desktop_ui/03_ask_question_and_permission.png" alt="Permission Control"><br><b>Permission Control & AI Questions</b></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><img src="docs/images/desktop_ui/05_settings.png" alt="Provider Settings"><br><b>Multi-Provider Management</b></td>
+    <td align="center" width="33%"><img src="docs/images/desktop_ui/08_scheduled_task.png" alt="Scheduled Tasks"><br><b>Scheduled Tasks</b></td>
+    <td align="center" width="33%"><img src="docs/images/desktop_ui/07_im.png" alt="IM Adapters"><br><b>IM Adapters (Telegram / Feishu)</b></td>
+  </tr>
+</table>
 
 ---
 
@@ -57,31 +82,6 @@ A **locally runnable version** repaired from the leaked Claude Code source, with
     <td align="center" width="25%"><img src="docs/images/08-state-data-flow.png" alt="State and data flow"><br><b>State and data flow</b></td>
   </tr>
 </table>
-
----
-
-## Desktop Preview
-
-<p align="center">
-  <a href="https://github.com/NanmiCoder/cc-haha/releases"><img src="https://img.shields.io/badge/⬇_Download_Desktop-macOS_%7C_Windows-D97757?style=for-the-badge" alt="Download Desktop"></a>
-  &nbsp;
-  <a href="docs/desktop/04-installation.md"><img src="https://img.shields.io/badge/📖_Install_Guide-Guide-gray?style=for-the-badge" alt="Install Guide"></a>
-</p>
-
-<table>
-  <tr>
-    <td align="center" width="33%"><img src="docs/images/desktop_ui/01_full_ui.png" alt="Main UI"><br><b>Main Interface</b></td>
-    <td align="center" width="33%"><img src="docs/images/desktop_ui/02_edit_code.png" alt="Code Editing"><br><b>Code Editing & Diff View</b></td>
-    <td align="center" width="33%"><img src="docs/images/desktop_ui/03_ask_question_and_permission.png" alt="Permission Control"><br><b>Permission Control & AI Questions</b></td>
-  </tr>
-  <tr>
-    <td align="center" width="33%"><img src="docs/images/desktop_ui/05_settings.png" alt="Provider Settings"><br><b>Multi-Provider Management</b></td>
-    <td align="center" width="33%"><img src="docs/images/desktop_ui/08_scheduled_task.png" alt="Scheduled Tasks"><br><b>Scheduled Tasks</b></td>
-    <td align="center" width="33%"><img src="docs/images/desktop_ui/07_im.png" alt="IM Adapters"><br><b>IM Adapters (Telegram / Feishu)</b></td>
-  </tr>
-</table>
-
----
 
 ## Quick Start
 

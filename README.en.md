@@ -176,39 +176,6 @@ http://127.0.0.1:2024
 
 ---
 
-## Tech Stack
-
-| Category | Technology |
-|------|------|
-| Runtime | [Bun](https://bun.sh) |
-| Language | TypeScript |
-| Terminal UI | React + [Ink](https://github.com/vadimdemedes/ink) |
-| CLI parsing | Commander.js |
-| API | Anthropic SDK |
-| Protocols | MCP, LSP |
-
----
-
-## More Documentation
-
-| Document | Description |
-|------|------|
-| [Environment Variables](docs/en/guide/env-vars.md) | Full env var reference and configuration methods |
-| [Third-Party Models](docs/en/guide/third-party-models.md) | Using OpenAI / DeepSeek / Ollama and other non-Anthropic models |
-| [Contributing](docs/en/guide/contributing.md) | Local tests, live model baselines, PR gates, and release gates |
-| [Memory System](docs/memory/01-usage-guide.md) | Cross-session persistent memory usage and implementation |
-| [Multi-Agent System](docs/agent/01-usage-guide.md) | Agent orchestration, parallel tasks and Teams collaboration |
-| [Skills System](docs/skills/01-usage-guide.md) | Extensible capability plugins, custom workflows and conditional activation |
-| [Channel System](docs/en/channel/01-channel-system.md) | Remote Agent control via Telegram/Feishu/Discord IM platforms |
-| [Computer Use](docs/en/features/computer-use.md) | Desktop control (screenshots, mouse, keyboard) — [Architecture](docs/en/features/computer-use-architecture.md) |
-| [Desktop App](docs/desktop/) | Tauri 2 + React GUI client — [Quick Start](docs/desktop/01-quick-start.md) \| [Architecture](docs/desktop/02-architecture.md) \| [Installation](docs/desktop/04-installation.md) |
-| [Global Usage](docs/en/guide/global-usage.md) | Run claude-haha from any directory |
-| [FAQ](docs/en/guide/faq.md) | Common error troubleshooting |
-| [Source Fixes](docs/en/reference/fixes.md) | Fixes compared with the original leaked source |
-| [Project Structure](docs/en/reference/project-structure.md) | Code directory structure |
-
----
-
 ## Sponsorship & Partnership
 
 This project is maintained in the author's spare time. Corporate or individual sponsorships are welcome to support ongoing development. Custom features, integrations, and business partnerships are also open for discussion.
@@ -271,6 +238,39 @@ If this project helps you, consider buying me a coffee — every bit of support 
 </td>
 </tr>
 </table>
+
+---
+
+## Tech Stack
+
+| Category | Technology |
+|------|------|
+| Runtime | [Bun](https://bun.sh) |
+| Language | TypeScript |
+| Terminal UI | React + [Ink](https://github.com/vadimdemedes/ink) |
+| CLI parsing | Commander.js |
+| API | Anthropic SDK |
+| Protocols | MCP, LSP |
+
+---
+
+## More Documentation
+
+| Document | Description |
+|------|------|
+| [Environment Variables](docs/en/guide/env-vars.md) | Full env var reference and configuration methods |
+| [Third-Party Models](docs/en/guide/third-party-models.md) | Using OpenAI / DeepSeek / Ollama and other non-Anthropic models |
+| [Contributing](docs/en/guide/contributing.md) | Local tests, live model baselines, PR gates, and release gates |
+| [Memory System](docs/memory/01-usage-guide.md) | Cross-session persistent memory usage and implementation |
+| [Multi-Agent System](docs/agent/01-usage-guide.md) | Agent orchestration, parallel tasks and Teams collaboration |
+| [Skills System](docs/skills/01-usage-guide.md) | Extensible capability plugins, custom workflows and conditional activation |
+| [Channel System](docs/en/channel/01-channel-system.md) | Remote Agent control via Telegram/Feishu/Discord IM platforms |
+| [Computer Use](docs/en/features/computer-use.md) | Desktop control (screenshots, mouse, keyboard) — [Architecture](docs/en/features/computer-use-architecture.md) |
+| [Desktop App](docs/desktop/) | Tauri 2 + React GUI client — [Quick Start](docs/desktop/01-quick-start.md) \| [Architecture](docs/desktop/02-architecture.md) \| [Installation](docs/desktop/04-installation.md) |
+| [Global Usage](docs/en/guide/global-usage.md) | Run claude-haha from any directory |
+| [FAQ](docs/en/guide/faq.md) | Common error troubleshooting |
+| [Source Fixes](docs/en/reference/fixes.md) | Fixes compared with the original leaked source |
+| [Project Structure](docs/en/reference/project-structure.md) | Code directory structure |
 
 ---
 

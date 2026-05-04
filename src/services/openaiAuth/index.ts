@@ -55,13 +55,18 @@ export class OpenAIOAuthService {
   private codeVerifier: string
   private authCodeListener: AuthCodeListener | null = null
   private port: number | null = null
+  private manualAuthCodeResolver: ((authorizationCode: string) => void) | null =
+    null
 
   constructor() {
     this.codeVerifier = generateCodeVerifier()
   }
 
   async startOAuthFlow(
-    authURLHandler: (url: string) => Promise<void>,
+    authURLHandler: (url: string, automaticUrl?: string) => Promise<void>,
+    options?: {
+      skipBrowserOpen?: boolean
+    },
   ): Promise<OpenAIOAuthTokens> {
     this.authCodeListener = new AuthCodeListener(OPENAI_CODEX_REDIRECT_PATH)
     this.port = await this.authCodeListener.start(OPENAI_CODEX_OAUTH_PORT)
@@ -74,15 +79,17 @@ export class OpenAIOAuthService {
       state,
     })
 
-    const authorizationCode = await new Promise<string>((resolve, reject) => {
-      this.authCodeListener
-        ?.waitForAuthorization(state, async () => {
+    const authorizationCode = await this.waitForAuthorizationCode(
+      state,
+      async () => {
+        if (options?.skipBrowserOpen) {
+          await authURLHandler(authorizeUrl, authorizeUrl)
+        } else {
           await authURLHandler(authorizeUrl)
           await openBrowser(authorizeUrl)
-        })
-        .then(resolve)
-        .catch(reject)
-    })
+        }
+      },
+    )
 
     try {
       const response = await exchangeOpenAICodeForTokens({
@@ -111,6 +118,41 @@ export class OpenAIOAuthService {
       throw error
     } finally {
       this.cleanup()
+    }
+  }
+
+  private async waitForAuthorizationCode(
+    state: string,
+    onReady: () => Promise<void>,
+  ): Promise<string> {
+    return new Promise((resolve, reject) => {
+      this.manualAuthCodeResolver = resolve
+
+      this.authCodeListener
+        ?.waitForAuthorization(state, onReady)
+        .then((authorizationCode) => {
+          this.manualAuthCodeResolver = null
+          resolve(authorizationCode)
+        })
+        .catch((error) => {
+          this.manualAuthCodeResolver = null
+          reject(error)
+        })
+    })
+  }
+
+  /**
+   * Handle manual auth code input — e.g., user pastes the authorization code
+   * from the browser into the desktop UI when automatic redirect didn't work.
+   */
+  handleManualAuthCodeInput(params: {
+    authorizationCode: string
+    state: string
+  }): void {
+    if (this.manualAuthCodeResolver) {
+      this.manualAuthCodeResolver(params.authorizationCode)
+      this.manualAuthCodeResolver = null
+      this.authCodeListener?.close()
     }
   }
 
@@ -144,6 +186,7 @@ export class OpenAIOAuthService {
     this.authCodeListener?.close()
     this.authCodeListener = null
     this.port = null
+    this.manualAuthCodeResolver = null
   }
 }
 

@@ -162,6 +162,36 @@ export function calculateContextPercentages(
 }
 
 /**
+ * Calculate the current context size after the latest assistant response.
+ *
+ * API usage reports the prompt tokens used for the just-finished request plus
+ * that request's output tokens. The output becomes part of the next request's
+ * conversation context, so omitting it can make context usage appear to drop
+ * immediately after the model finishes responding. The local estimate is kept
+ * as a lower bound because it includes system/tool/message material that some
+ * provider usage payloads under-report.
+ */
+export function calculateCurrentContextTokenTotal(
+  estimatedTokens: number,
+  currentUsage: {
+    input_tokens: number
+    output_tokens?: number
+    cache_creation_input_tokens: number
+    cache_read_input_tokens: number
+  } | null,
+): number {
+  if (!currentUsage) return estimatedTokens
+
+  const totalFromAPI =
+    currentUsage.input_tokens +
+    currentUsage.cache_creation_input_tokens +
+    currentUsage.cache_read_input_tokens +
+    (currentUsage.output_tokens ?? 0)
+
+  return Math.max(estimatedTokens, totalFromAPI)
+}
+
+/**
  * Returns the model's default and upper limit for max output tokens.
  */
 export function getModelMaxOutputTokens(model: string): {

@@ -539,7 +539,18 @@ async function getGitInfo(sessionId: string): Promise<Response> {
     throw ApiError.notFound(`Session not found: ${sessionId}`)
   }
   const launchInfo = await sessionService.getSessionLaunchInfo(sessionId).catch(() => null)
-  const sessionBranch = launchInfo?.repository?.branch || null
+  const repository = launchInfo?.repository
+  const sessionBranch = repository?.branch || null
+  const worktree = repository?.worktree
+    ? {
+        enabled: true,
+        path: workDir,
+        plannedPath: repository.worktreePath || null,
+        sourceWorkDir: repository.requestedWorkDir || repository.repoRoot || null,
+        slug: repository.worktreeSlug || null,
+        branch: repository.worktreeBranch || null,
+      }
+    : null
 
   try {
     // Get branch name
@@ -584,6 +595,7 @@ async function getGitInfo(sessionId: string): Promise<Response> {
       repoName,
       workDir,
       changedFiles,
+      worktree,
     })
   } catch {
     // Not a git repo or git not available
@@ -592,6 +604,7 @@ async function getGitInfo(sessionId: string): Promise<Response> {
       repoName: null,
       workDir,
       changedFiles: 0,
+      worktree,
     })
   }
 }

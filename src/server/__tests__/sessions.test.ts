@@ -1508,6 +1508,53 @@ describe('Sessions API', () => {
     }
   })
 
+  it('GET /api/sessions/:id/git-info should include isolated worktree identity', async () => {
+    const workDir = await createCleanGitRepo(tmpDir)
+    const { sessionId } = await sessionService.createSession(
+      workDir,
+      { branch: 'main', worktree: true },
+    )
+    const launchInfo = await sessionService.getSessionLaunchInfo(sessionId)
+    const repository = launchInfo?.repository
+    expect(repository?.worktreePath).toBeTruthy()
+    expect(repository?.worktreeBranch).toBeTruthy()
+
+    const activeWorktree = repository!.worktreePath!
+    git(workDir, 'worktree', 'add', '-b', repository!.worktreeBranch!, activeWorktree, 'main')
+    const sessionsMap = (conversationService as any).sessions as Map<string, { workDir: string }>
+
+    sessionsMap.set(sessionId, { workDir: activeWorktree })
+    try {
+      const res = await fetch(`${baseUrl}/api/sessions/${sessionId}/git-info`)
+      expect(res.status).toBe(200)
+
+      const body = (await res.json()) as {
+        branch: string | null
+        workDir: string
+        worktree: {
+          enabled: boolean
+          path: string | null
+          plannedPath: string | null
+          sourceWorkDir: string | null
+          slug: string | null
+          branch: string | null
+        } | null
+      }
+      expect(body.branch).toBe('main')
+      expect(body.workDir).toBe(activeWorktree)
+      expect(body.worktree).toEqual({
+        enabled: true,
+        path: activeWorktree,
+        plannedPath: activeWorktree,
+        sourceWorkDir: repository!.requestedWorkDir,
+        slug: repository!.worktreeSlug,
+        branch: repository!.worktreeBranch,
+      })
+    } finally {
+      sessionsMap.delete(sessionId)
+    }
+  })
+
   it('DELETE /api/sessions/:id should delete the session', async () => {
     const sessionId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
     await writeSessionFile('-tmp-api-test', sessionId, [makeSnapshotEntry()])

@@ -12,7 +12,7 @@ import {
   useWorkspaceChatContextStore,
   type WorkspaceChatReference,
 } from '../../stores/workspaceChatContextStore'
-import { sessionsApi } from '../../api/sessions'
+import { sessionsApi, type SessionGitInfo } from '../../api/sessions'
 import { PermissionModeSelector } from '../controls/PermissionModeSelector'
 import { ModelSelector } from '../controls/ModelSelector'
 import type { AttachmentRef } from '../../types/chat'
@@ -30,7 +30,7 @@ import {
   resolveSlashUiAction,
 } from './composerUtils'
 
-type GitInfo = { branch: string | null; repoName: string | null; workDir: string; changedFiles: number }
+type GitInfo = SessionGitInfo
 
 type Attachment = {
   id: string
@@ -981,6 +981,10 @@ export function ChatInput({ variant = 'default', compact = false }: ChatInputPro
                 workDir={resolvedWorkDir}
                 repoName={gitInfo?.repoName || null}
                 branch={gitInfo?.branch || null}
+                sourceWorkDir={gitInfo?.worktree?.sourceWorkDir || null}
+                isWorktree={!!gitInfo?.worktree?.enabled}
+                worktreeSlug={gitInfo?.worktree?.slug || null}
+                worktreePath={gitInfo?.worktree?.path || gitInfo?.worktree?.plannedPath || null}
                 compact={compact}
               />
             ) : (

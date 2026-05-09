@@ -204,6 +204,42 @@ describe('Sidebar', () => {
     expect(screen.getByTestId('sidebar-session-list-section')).toHaveClass('flex', 'flex-1', 'min-h-0', 'flex-col')
   })
 
+  it('closes the mobile drawer after navigation actions', async () => {
+    const onRequestClose = vi.fn()
+    createSession.mockResolvedValue('session-mobile-new')
+    useSessionStore.setState({
+      sessions: [
+        {
+          id: 'session-1',
+          title: 'Open Session',
+          createdAt: new Date().toISOString(),
+          modifiedAt: new Date().toISOString(),
+          messageCount: 1,
+          projectPath: '/workspace/project',
+          workDir: '/workspace/project',
+          workDirExists: true,
+        },
+      ],
+    })
+
+    render(<Sidebar isMobile onRequestClose={onRequestClose} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Scheduled' }))
+    expect(onRequestClose).toHaveBeenCalledTimes(1)
+
+    fireEvent.click(screen.getByRole('button', { name: /Open Session/ }))
+    expect(onRequestClose).toHaveBeenCalledTimes(2)
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'New Session' }))
+    })
+
+    await waitFor(() => {
+      expect(createSession).toHaveBeenCalled()
+    })
+    expect(onRequestClose).toHaveBeenCalledTimes(3)
+  })
+
   it('shows a loading state instead of an empty session list while initial fetch is pending', () => {
     useSessionStore.setState({ isLoading: true, sessions: [] })
 

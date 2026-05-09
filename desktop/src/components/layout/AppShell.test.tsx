@@ -1,10 +1,12 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { useUIStore } from '../../stores/uiStore'
 
 const mocks = vi.hoisted(() => ({
   initializeDesktopServerUrl: vi.fn(),
   isTauriRuntime: false,
+  isMobile: false,
   fetchAll: vi.fn(),
   restoreTabs: vi.fn(),
   connectToSession: vi.fn(),
@@ -26,9 +28,8 @@ vi.mock('../../stores/settingsStore', () => ({
     selector({ fetchAll: mocks.fetchAll }),
 }))
 
-vi.mock('../../stores/uiStore', () => ({
-  useUIStore: (selector: (state: { sidebarOpen: boolean }) => unknown) =>
-    selector({ sidebarOpen: true }),
+vi.mock('../../hooks/useMobileViewport', () => ({
+  useMobileViewport: () => mocks.isMobile,
 }))
 
 vi.mock('../../stores/tabStore', () => ({
@@ -95,11 +96,13 @@ describe('AppShell boot flow', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.isTauriRuntime = false
+    mocks.isMobile = false
     mocks.initializeDesktopServerUrl.mockResolvedValue('http://127.0.0.1:3456')
     mocks.fetchAll.mockResolvedValue(undefined)
     mocks.restoreTabs.mockResolvedValue(undefined)
     mocks.tabState.activeTabId = null
     mocks.tabState.tabs = []
+    useUIStore.setState({ sidebarOpen: true })
   })
 
   it('renders the desktop chrome after server and settings bootstrap', async () => {
@@ -217,5 +220,36 @@ describe('AppShell boot flow', () => {
 
     expect(await screen.findByText('app.serverFailed')).toBeInTheDocument()
     expect(screen.queryByText('h5 connection view')).not.toBeInTheDocument()
+  })
+
+  it('renders a mobile drawer toggle and backdrop in browser H5 mode', async () => {
+    mocks.isMobile = true
+
+    render(<AppShell />)
+
+    await screen.findByText('content loaded')
+
+    await waitFor(() => {
+      expect(useUIStore.getState().sidebarOpen).toBe(false)
+    })
+
+    expect(screen.getByTestId('sidebar-shell')).toHaveAttribute('data-state', 'closed')
+    expect(screen.getByTestId('sidebar-shell')).toHaveAttribute('aria-hidden', 'true')
+    expect(screen.getByTestId('sidebar-shell')).toHaveAttribute('inert')
+    expect(screen.queryByText('sidebar loaded')).not.toBeInTheDocument()
+    expect(screen.getByTestId('mobile-sidebar-toggle')).toBeInTheDocument()
+    expect(screen.queryByTestId('sidebar-backdrop')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByTestId('mobile-sidebar-toggle'))
+
+    expect(useUIStore.getState().sidebarOpen).toBe(true)
+    expect(screen.getByTestId('sidebar-shell')).toHaveAttribute('data-state', 'open')
+    expect(screen.getByText('sidebar loaded')).toBeInTheDocument()
+    expect(screen.getByTestId('sidebar-backdrop')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByTestId('sidebar-backdrop'))
+
+    expect(useUIStore.getState().sidebarOpen).toBe(false)
+    expect(screen.getByTestId('sidebar-shell')).toHaveAttribute('data-state', 'closed')
   })
 })

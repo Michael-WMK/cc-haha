@@ -8,7 +8,7 @@
 
 import { homedir } from 'os'
 import { join } from 'path'
-import { access, readFile, mkdir, writeFile } from 'fs/promises'
+import { access, readFile, mkdir, writeFile, rm } from 'fs/promises'
 import { createHash } from 'crypto'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -74,6 +74,32 @@ async function pathExists(target: string): Promise<boolean> {
     return true
   } catch {
     return false
+  }
+}
+
+/**
+ * 通过读取 venv 自身的 pyvenv.cfg（标准 Python venv 配置文件），判断该 venv
+ * 是否由指定的解释器创建。`home = ...` 字段记录了创建该 venv 时所用 Python
+ * 可执行文件所在目录。
+ *
+ * 仅在用户配置了自定义 Python 路径时调用——未配置自定义路径的老用户不会进入
+ * 此分支，原有行为完全保留。
+ *
+ * 读取失败 / 字段缺失时返回 true，避免在无法判断时干扰已经在工作的环境。
+ */
+async function venvBuiltFromInterpreter(
+  venvDir: string,
+  interpreterPath: string,
+): Promise<boolean> {
+  try {
+    const cfg = await readFile(join(venvDir, 'pyvenv.cfg'), 'utf8')
+    const homeMatch = cfg.match(/^\s*home\s*=\s*(.+)$/m)
+    if (!homeMatch) return true
+    const recordedHome = homeMatch[1].trim()
+    const expectedHome = path.dirname(interpreterPath)
+    return recordedHome === expectedHome
+  } catch {
+    return true
   }
 }
 
@@ -158,11 +184,20 @@ async function checkStatus(): Promise<EnvStatus> {
     config.pythonPath,
   )
 
+  // 仅当用户配置了自定义 Python 路径时才校验现有 venv 是否由该解释器创建。
+  // 未配置自定义路径的用户不进入此分支，effectiveVenvCreated === venvCreated，
+  // 保持原有行为不变。
+  let effectiveVenvCreated = venvCreated
+  if (venvCreated && config.pythonPath) {
+    const matches = await venvBuiltFromInterpreter(venvRoot, config.pythonPath)
+    if (!matches) effectiveVenvCreated = false
+  }
+
   // Check dependencies — use the state dir copy
   const reqPath = getRequirementsPath()
   const requirementsFound = await pathExists(reqPath)
   let depsInstalled = false
-  if (requirementsFound && venvCreated) {
+  if (requirementsFound && effectiveVenvCreated) {
     try {
       const requirements = await readFile(reqPath, 'utf8')
       const digest = createHash('sha256').update(requirements).digest('hex')
@@ -178,7 +213,7 @@ async function checkStatus(): Promise<EnvStatus> {
   // plain preflight can misreport child processes launched by the desktop app.
   let accessibility: boolean | null = null
   let screenRecording: boolean | null = null
-  if (supported && venvCreated && depsInstalled) {
+  if (supported && effectiveVenvCreated && depsInstalled) {
     try { await ensureRuntimeFiles() } catch {}
     const helperPath = getHelperPath()
     if (await pathExists(helperPath)) {
@@ -205,7 +240,7 @@ async function checkStatus(): Promise<EnvStatus> {
       source: pythonRuntime.source,
       error: pythonRuntime.error,
     },
-    venv: { created: venvCreated, path: venvRoot },
+    venv: { created: effectiveVenvCreated, path: venvRoot },
     dependencies: { installed: depsInstalled, requirementsFound: requirementsFound || true },
     permissions: { accessibility, screenRecording },
   }
@@ -222,8 +257,35 @@ async function runSetup(): Promise<SetupResult> {
   const venvPython = isWindows
     ? join(venvRoot, 'Scripts', 'python.exe')
     : join(venvRoot, 'bin', 'python3')
-  const venvExists = await pathExists(venvPython)
+  let venvExists = await pathExists(venvPython)
   const config = await loadConfig()
+
+  // 仅在用户配置了自定义 Python 路径时才考虑重建：若现有 venv 不是由该解释器
+  // 创建，则删除以便后续步骤使用新解释器重建。未配置自定义路径时不动现有 venv。
+  if (venvExists && config.pythonPath) {
+    const matches = await venvBuiltFromInterpreter(venvRoot, config.pythonPath)
+    if (!matches) {
+      try {
+        await rm(venvRoot, { recursive: true, force: true })
+        // 同时清除 stamp，否则 Step 5 会因 digest 匹配而跳过依赖安装，
+        // 导致重建出的 venv 没有依赖。
+        await rm(installStampPath, { force: true })
+        venvExists = false
+        steps.push({
+          name: 'venv_rebuild',
+          ok: true,
+          message: '检测到自定义解释器变更，已移除旧虚拟环境以便重建',
+        })
+      } catch (err) {
+        steps.push({
+          name: 'venv_rebuild',
+          ok: false,
+          message: `移除旧虚拟环境失败: ${err}`,
+        })
+        return { success: false, steps }
+      }
+    }
+  }
 
   // Step 1: Check python
   const pythonRuntime = await detectPythonRuntime(

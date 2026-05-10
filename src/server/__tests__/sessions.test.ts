@@ -911,6 +911,26 @@ describe('SessionService', () => {
     expect(workDir).toBe('/tmp/latest-worktree')
   })
 
+  it('should prefer the newest duplicate session file when worktree metadata moves', async () => {
+    const sessionId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+    const sourceFile = await writeSessionFile('-tmp-project', sessionId, [
+      makeSnapshotEntry(),
+      makeSessionMetaEntry('/tmp/project'),
+    ])
+    const worktreeFile = await writeSessionFile('-tmp-project--claude-worktrees-desktop-main-12345678', sessionId, [
+      makeSnapshotEntry(),
+      makeSessionMetaEntry('/tmp/project/.claude/worktrees/desktop-main-12345678'),
+    ])
+
+    const oldTime = new Date('2026-01-01T00:00:00.000Z')
+    const newTime = new Date('2026-01-01T00:00:01.000Z')
+    await fs.utimes(sourceFile, oldTime, oldTime)
+    await fs.utimes(worktreeFile, newTime, newTime)
+
+    const workDir = await service.getSessionWorkDir(sessionId)
+    expect(workDir).toBe('/tmp/project/.claude/worktrees/desktop-main-12345678')
+  })
+
   it('should recover CLI worktree state from transcript metadata', async () => {
     const sessionId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
     await writeSessionFile('-tmp-project--claude-worktrees-desktop-main-12345678', sessionId, [

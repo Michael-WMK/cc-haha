@@ -863,6 +863,31 @@ describe('WebSocket Chat Integration', () => {
     expect(statusVerbs).toContain('Creating worktree')
   })
 
+  it('does not emit worktree startup status for an already materialized worktree session', async () => {
+    const repoDir = await createCleanGitRepo()
+    const { sessionId } = await sessionService.createSession(repoDir, {
+      branch: 'feature/rail',
+      worktree: true,
+    })
+
+    const launchInfo = await sessionService.getSessionLaunchInfo(sessionId)
+    const worktreePath = launchInfo?.repository?.worktreePath
+    expect(worktreePath).toBeTruthy()
+    await fs.mkdir(worktreePath!, { recursive: true })
+    await sessionService.appendSessionMetadata(sessionId, {
+      workDir: worktreePath!,
+      repository: launchInfo!.repository,
+    })
+
+    const messages = await runTurn(sessionId, 'Continue in the existing worktree')
+    const statusVerbs = messages
+      .filter((msg) => msg.type === 'status')
+      .map((msg) => msg.verb)
+
+    expect(statusVerbs).toContain('Thinking')
+    expect(statusVerbs).not.toContain('Creating worktree')
+  })
+
   it('keeps the default startup status for current-worktree repository sessions', async () => {
     const repoDir = await createCleanGitRepo()
     const { sessionId } = await sessionService.createSession(repoDir, {

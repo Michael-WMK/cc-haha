@@ -855,18 +855,20 @@ export class SessionService {
       return []
     }
 
-    const matches: Array<{ filePath: string; projectDir: string }> = []
+    const matches: Array<{ filePath: string; projectDir: string; mtimeMs: number }> = []
     for (const dir of projectDirs) {
       const filePath = path.join(projectsDir, dir, `${sessionId}.jsonl`)
       try {
-        await fs.access(filePath)
-        matches.push({ filePath, projectDir: dir })
+        const stat = await fs.stat(filePath)
+        matches.push({ filePath, projectDir: dir, mtimeMs: stat.mtimeMs })
       } catch {
         continue
       }
     }
 
     return matches
+      .sort((a, b) => b.mtimeMs - a.mtimeMs)
+      .map(({ filePath, projectDir }) => ({ filePath, projectDir }))
   }
 
   async findSessionFile(

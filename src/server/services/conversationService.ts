@@ -13,7 +13,9 @@ import { ProviderService } from './providerService.js'
 import { sessionService } from './sessionService.js'
 import { diagnosticsService } from './diagnosticsService.js'
 import {
+  isMaterializedWorktreeLaunch,
   prepareSessionWorkspace,
+  shouldCreateWorktreeForSessionLaunch,
   type PreparedSessionWorkspace,
 } from './repositoryLaunchService.js'
 import {
@@ -146,6 +148,10 @@ export class ConversationService {
     const shouldResume = !!launchInfo && launchInfo.transcriptMessageCount > 0
     const shouldReplacePlaceholder =
       !!launchInfo && launchInfo.transcriptMessageCount === 0
+    const shouldCreateWorktree =
+      !!launchInfo && shouldCreateWorktreeForSessionLaunch(launchInfo)
+    const hasMaterializedWorktree =
+      !!launchInfo && isMaterializedWorktreeLaunch(launchInfo)
 
     if (this.deletedSessions.has(sessionId)) {
       throw new ConversationStartupError(
@@ -167,9 +173,9 @@ export class ConversationService {
 
     let launchWorkDir = workDir
     let launchRepository = launchInfo?.repository
-    if (!shouldResume && launchRepository?.worktree) {
+    if (shouldCreateWorktree && launchRepository?.worktree) {
       launchWorkDir = launchRepository.requestedWorkDir || launchRepository.repoRoot || workDir
-    } else if (!shouldResume && launchRepository) {
+    } else if (!shouldResume && launchRepository && !hasMaterializedWorktree) {
       const preparedWorkspace = await prepareSessionWorkspace(
         workDir,
         {
@@ -180,6 +186,13 @@ export class ConversationService {
       )
       launchWorkDir = preparedWorkspace.workDir
       launchRepository = preparedWorkspace.repository
+    }
+
+    if (!shouldCreateWorktree && launchRepository?.worktree) {
+      launchRepository = {
+        ...launchRepository,
+        worktree: false,
+      }
     }
 
     if (!fs.existsSync(launchWorkDir) || !fs.statSync(launchWorkDir).isDirectory()) {

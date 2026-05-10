@@ -24,6 +24,7 @@ import {
   LOCAL_COMMAND_STDERR_TAG,
   LOCAL_COMMAND_STDOUT_TAG,
 } from '../../constants/xml.js'
+import { shouldCreateWorktreeForSessionLaunch } from '../services/repositoryLaunchService.js'
 
 const settingsService = new SettingsService()
 const providerService = new ProviderService()
@@ -80,7 +81,7 @@ async function sendRepositoryStartupStatus(
   const repository = launchInfo?.repository
   if (!repository) return
 
-  if (repository.worktree) {
+  if (shouldCreateWorktreeForSessionLaunch(launchInfo)) {
     sendMessage(ws, { type: 'status', state: 'thinking', verb: 'Creating worktree' })
   }
 }

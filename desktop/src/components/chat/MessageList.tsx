@@ -316,6 +316,7 @@ export function MessageList({ sessionId, compact = false }: MessageListProps = {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const shouldAutoScrollRef = useRef(true)
+  const isProgrammaticScrollingRef = useRef(false)
   const lastSessionIdRef = useRef<string | null | undefined>(resolvedSessionId)
   const t = useTranslation()
   const [turnChangeCards, setTurnChangeCards] = useState<TurnChangeCardModel[]>([])
@@ -328,6 +329,7 @@ export function MessageList({ sessionId, compact = false }: MessageListProps = {
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior) => {
     shouldAutoScrollRef.current = true
+    isProgrammaticScrollingRef.current = true
     bottomRef.current?.scrollIntoView?.({ behavior, block: 'end' })
     const container = scrollContainerRef.current
     if (container && resolvedSessionId) {
@@ -337,9 +339,16 @@ export function MessageList({ sessionId, compact = false }: MessageListProps = {
       })
     }
     setShowJumpToLatest(false)
+    // Reset flag after the scroll event(s) from scrollIntoView have fired
+    requestAnimationFrame(() => {
+      isProgrammaticScrollingRef.current = false
+    })
   }, [resolvedSessionId])
 
   const updateAutoScrollState = useCallback(() => {
+    // Ignore scroll events triggered by our own programmatic scrolling to
+    // prevent the jump-to-latest button from flickering during auto-scroll.
+    if (isProgrammaticScrollingRef.current) return
     const container = scrollContainerRef.current
     if (!container) return
     const isAtBottom = isNearScrollBottom(container)

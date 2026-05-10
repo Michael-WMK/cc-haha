@@ -967,7 +967,7 @@ export class SessionService {
       output_tokens: latest.outputTokens,
       cache_read_input_tokens: latest.cacheReadInputTokens,
       cache_creation_input_tokens: latest.cacheCreationInputTokens,
-    })
+    }, rawMaxTokens)
     const percentage = rawMaxTokens > 0 ? Math.round((totalTokens / rawMaxTokens) * 100) : 0
     const categories: TranscriptContextEstimate['categories'] = [
       { name: 'Input tokens', tokens: latest.inputTokens, color: '#8f3217' },
